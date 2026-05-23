@@ -5,3 +5,29 @@ python-multipart
 
 
 # Langchain ecosystem
+langchain
+langchain-community
+langchain-core
+langchain-groq
+
+# Vectorstore
+pinecone
+
+# Embeddings - sentence transformers
+langchain-google-genai
+
+PyPDF
+
+python-dotenv
+
+# Typing
+pydantic
+requests
+tqdm
+
+# logging
+loguru
+
+# File uploads
+aiofiles
+
