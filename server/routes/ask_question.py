@@ -1,16 +1,16 @@
 import os
 from re import match
 
-from fastapi import ApiRouter, Form
+from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
 from modules.llm import get_llm_chain
 from modules.load_vectorstore import load_vectorstore
 
 from langchain_core.documents import Document
-from langchain.schema import BaseRetriever
+from langchain_core.retrievers import BaseRetriever
 
-from langchain.google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from pinecone import Pinecone, Index
 from pydantic import Field
@@ -18,7 +18,7 @@ from pydantic import Field
 from typing import List, Optional
 from logger import logger
 
-router = ApiRouter()
+router = APIRouter()
 
 
 @router.post("/ask/")

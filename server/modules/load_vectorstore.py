@@ -5,16 +5,16 @@ from dotenv import load_dotenv
 from tqdm.auto import tqdm
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from server import logger
+import logger
 
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = "us-east-1"
-PINECONE_INDEX_NAME = "medical_index"
+PINECONE_INDEX_NAME = "medical-index"
 RELAXATION_TIME = 1  # in seconds
 
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
@@ -23,15 +23,14 @@ UPLOAD_DIR = "./uploaded_docs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Initialise pinceone instance (we can only make unique indexes)
-pinecone = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+pinecone = Pinecone(api_key=PINECONE_API_KEY)
 serverless_spec = ServerlessSpec(
-    name=PINECONE_INDEX_NAME,
     cloud="aws",
     region=PINECONE_ENV,
 )
 
 # Check if the index already exists, if not create it
-existing_indexes = [i["name"] for i in pinecone.list_indexes()]
+existing_indexes = pinecone.list_indexes().names()
 if PINECONE_INDEX_NAME not in existing_indexes:
     print(f"Creating Pinecone index: {PINECONE_INDEX_NAME}")
     pinecone.create_index(
@@ -51,7 +50,7 @@ index = pinecone.Index(name=PINECONE_INDEX_NAME)
 
 
 # Load, split, embed and upsert pdf document content
-def f_load_vectorstore(uploaded_files):
+def load_vectorstore(uploaded_files):
     # define the embedding model
     embedding_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     file_paths = []
