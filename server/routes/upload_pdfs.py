@@ -12,7 +12,7 @@ router = APIRouter()
 async def upload_pdfs(files: List[UploadFile] = File(...)):
     try:
         logger.info(f"Received {len(files)} files for upload.")
-        f_load_vectorstore(files)
+        load_vectorstore(files)
         logger.info("Successfully processed and uploaded PDFs to Pinecone.")
     except Exception as e:
         logger.exception(f"Error uploading PDFs: {e}")
