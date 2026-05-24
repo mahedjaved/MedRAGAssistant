@@ -5,6 +5,7 @@ import tempfile
 
 UPLOAD_DIR = "./uploaded_docs"
 
+
 def save_uploaded_files(uploaded_files: list[UploadFile]) -> list[str]:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     file_path = []

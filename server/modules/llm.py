@@ -5,6 +5,7 @@ from langchain_classic.chains import RetrievalQA
 
 load_dotenv()
 
+
 def get_llm_chain(retriever):
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
