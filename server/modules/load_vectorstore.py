@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from logger import logger
 
 load_dotenv()
@@ -45,11 +45,11 @@ if PINECONE_INDEX_NAME not in existing_indexes:
 # Provide index
 index = pinecone.Index(name=PINECONE_INDEX_NAME)
 
+embedding_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
+
 
 # Load, split, embed and upsert pdf document content
 def load_vectorstore(uploaded_files):
-    # define the embedding model
-    embedding_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
     file_paths = []
 
     # 1. Upload files and save to disk
@@ -73,7 +73,7 @@ def load_vectorstore(uploaded_files):
 
         # gather the text content of the chunks for embedding
         texts = [chunk.page_content for chunk in chunks]
-        metadata = [chunk.metadata for chunk in chunks]
+        metadata = [{**chunk.metadata, "text": chunk.page_content} for chunk in chunks]
 
         # get the IDs for the chunks (we can use the filename and the chunk index to create unique IDs)
         ids = [f"{Path(file_path).stem}-{i}" for i in range(len(chunks))]

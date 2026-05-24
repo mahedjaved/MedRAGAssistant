@@ -9,15 +9,17 @@ from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
-from pinecone import Pinecone, Index
+from pinecone import Pinecone
 from pydantic import Field
 
 from typing import List, Optional
 from logger import logger
 
 router = APIRouter()
+
+embed_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
 
 
 @router.post("/ask/")
@@ -29,7 +31,6 @@ async def ask_question(question: str = Form(...)):
             api_key=os.getenv("PINECONE_API_KEY"),
         )
         index = pc.Index(PINECONE_INDEX_NAME)
-        embed_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
         embedding_query = embed_model.embed_query(question)
         response = index.query(
             vector=embedding_query,
