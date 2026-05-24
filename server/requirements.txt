@@ -32,4 +32,4 @@ loguru
 
 # File uploads
 aiofiles
-
+sentence_transformers
