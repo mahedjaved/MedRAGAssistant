@@ -3,6 +3,8 @@ fastapi
 uvicorn[standard]
 python-multipart
 
+langchain-huggingface
+
 
 # Langchain ecosystem
 langchain

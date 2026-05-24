@@ -9,7 +9,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from logger import logger
 
-
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")

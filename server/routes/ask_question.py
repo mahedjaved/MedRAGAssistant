@@ -25,10 +25,10 @@ async def ask_question(question: str = Form(...)):
     try:
         logger.info(f"Received question: {question}")
         # index the vectorstore
-        pinecone = Pinecone(
+        pc = Pinecone(
             api_key=os.getenv("PINECONE_API_KEY"),
         )
-        index = Index(PINECONE_INDEX_NAME)
+        index = pc.Index(PINECONE_INDEX_NAME)
         embed_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
         embedding_query = embed_model.embed_query(question)
         response = index.query(
@@ -63,11 +63,11 @@ async def ask_question(question: str = Form(...)):
 
         retriever = SimpleRetriever(docs)
         llm_chain = get_llm_chain(retriever)
-        result = llm_chain.run(question)
+        result = llm_chain.invoke({"query": question})
 
-        logger.info(f"Generated answer: {result[0:100]}")
+        logger.info(f"Generated answer: {result['result'][0:100]}")
 
-        return result
+        return result["result"]
 
     except Exception as e:
         logger.exception(f"Error processing question: {e}")

@@ -7,8 +7,8 @@ load_dotenv()
 
 def get_llm_chain(retriever):
     llm = ChatGroq(
-        model="llama3-70b-8192",
-        api_key=os.getenv("GROK_API_KEY"),
+        model="llama-3.3-70b-versatile",
+        api_key=os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY"),
     )
     chain = RetrievalQA.from_chain_type(
         llm=llm,
