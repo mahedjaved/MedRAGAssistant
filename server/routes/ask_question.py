@@ -1,16 +1,15 @@
 import os
-from re import match
 
 from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
 from modules.llm import get_llm_chain
-from modules.load_vectorstore import load_vectorstore
+from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from pinecone import Pinecone, Index
 from pydantic import Field
@@ -28,10 +27,9 @@ async def ask_question(question: str = Form(...)):
         # index the vectorstore
         pinecone = Pinecone(
             api_key=os.getenv("PINECONE_API_KEY"),
-            environment=os.getenv("PINECONE_ENVIRONMENT"),
         )
-        index = Index(os.getenv("PINECONE_INDEX_NAME"))
-        embed_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        index = Index(PINECONE_INDEX_NAME)
+        embed_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
         embedding_query = embed_model.embed_query(question)
         response = index.query(
             vector=embedding_query,

@@ -6,18 +6,16 @@ from tqdm.auto import tqdm
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-import logger
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from logger import logger
+
 
 load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = "us-east-1"
 PINECONE_INDEX_NAME = "medical-index"
 RELAXATION_TIME = 1  # in seconds
-
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 UPLOAD_DIR = "./uploaded_docs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -52,7 +50,7 @@ index = pinecone.Index(name=PINECONE_INDEX_NAME)
 # Load, split, embed and upsert pdf document content
 def load_vectorstore(uploaded_files):
     # define the embedding model
-    embedding_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embedding_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
     file_paths = []
 
     # 1. Upload files and save to disk
