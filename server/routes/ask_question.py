@@ -68,7 +68,10 @@ async def ask_question(question: str = Form(...)):
 
         logger.info(f"Generated answer: {result['result'][0:100]}")
 
-        return result["result"]
+        return {
+            "response": result["result"],
+            "sources": [doc.metadata.get("source", "Unknown") for doc in docs],
+        }
 
     except Exception as e:
         logger.exception(f"Error processing question: {e}")

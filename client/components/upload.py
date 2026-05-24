@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.api import upload_pdfs_api
+from utils import upload_pdfs_api
 
 
 def render_upload():

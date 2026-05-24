@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.api import ask_question
+from utils import ask_question
 
 
 def render_chat_ui():
@@ -25,6 +25,5 @@ def render_chat_ui():
             sources = data.get("sources", [])
             st.chat_message("assistant").markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
-
-    else:
-        st.error(f"Error: {response.text}")
+        else:
+            st.error(f"Error: {response.text}")
