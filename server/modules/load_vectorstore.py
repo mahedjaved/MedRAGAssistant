@@ -1,23 +1,22 @@
-import os
 import time
 from pathlib import Path
-from dotenv import load_dotenv
 from tqdm.auto import tqdm
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from logger import logger
+from config import settings
 
-load_dotenv()
 
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_ENV = "us-east-1"
-PINECONE_INDEX_NAME = "medical-index"
-RELAXATION_TIME = 1  # in seconds
+PINECONE_API_KEY = settings.pinecone_api_key
+PINECONE_ENV = settings.pinecone_env
+PINECONE_INDEX_NAME = settings.pinecone_index_name
+RELAXATION_TIME = settings.relaxation_time
 
-UPLOAD_DIR = "./uploaded_docs"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = settings.uploaded_docs_dir
+# os.makedirs(UPLOAD_DIR, exist_ok=True)
+Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
 # Initialise pinceone instance (we can only make unique indexes)
 pinecone = Pinecone(api_key=PINECONE_API_KEY)

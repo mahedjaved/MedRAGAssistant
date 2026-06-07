@@ -24,6 +24,7 @@ python-dotenv
 
 # Typing
 pydantic
+pydantic-settings
 requests
 tqdm
 

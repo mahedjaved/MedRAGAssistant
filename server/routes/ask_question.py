@@ -1,26 +1,21 @@
-import os
-
 from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
 from modules.llm import get_llm_chain
-from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
+# from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
+from modules.load_vectorstore import load_vectorstore, embedding_model, PINECONE_INDEX_NAME
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-
-from langchain_huggingface import HuggingFaceEmbeddings
 
 from pinecone import Pinecone
 from pydantic import Field
 
 from typing import List, Optional
 from logger import logger
+from config import settings
 
 router = APIRouter()
-
-embed_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
-
 
 @router.post("/ask/")
 async def ask_question(question: str = Form(...)):
@@ -28,10 +23,10 @@ async def ask_question(question: str = Form(...)):
         logger.info(f"Received question: {question}")
         # index the vectorstore
         pc = Pinecone(
-            api_key=os.getenv("PINECONE_API_KEY"),
+            api_key=settings.pinecone_api_key,
         )
         index = pc.Index(PINECONE_INDEX_NAME)
-        embedding_query = embed_model.embed_query(question)
+        embedding_query = embedding_model.embed_query(question)
         response = index.query(
             vector=embedding_query,
             top_k=3,  # top 3 relevant chunks
