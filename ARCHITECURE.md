@@ -54,20 +54,38 @@ This architecture shows a retrieval-augmented generation (RAG) medical AI system
 - Handles document ingestion and question answering.
 - Serves as the application API layer.
 
-### 9. Deployment
-- The app can be deployed on Render or a similar platform.
-- Keeps backend and API available for users.
+### 9. Health Check
+- `GET /health` endpoint for monitoring and orchestration.
+- Checks Pinecone connectivity and Groq API key presence.
+- Used by Docker's `HEALTHCHECK` and deployment platforms for auto-restarts.
+- Returns `{"status": "...", "version": "1.0", "checks": {...}}`.
+
+### 10. Containerisation
+- Multi-stage `Dockerfile` for the FastAPI backend (`server/Dockerfile`).
+- Lightweight `Dockerfile` for the Streamlit client (`client/Dockerfile`).
+- `docker-compose.yml` orchestrates all services: server, client, Qdrant (vector store), and PostgreSQL.
+- Named volumes for persistent data (`qdrant_data`, `postgres_data`, `hf_cache`).
+- Environment-based configuration via Pydantic Settings (no hardcoded secrets).
+
+### 11. Infrastructure Services
+- **Qdrant**: Alternative vector store for local development (future hybrid search).
+- **PostgreSQL**: Relational database reserved for query logging and future features.
 
 ## Core stack summary
 
 | Layer | Tool/Framework |
 |---|---|
 | LLM | Groq (LLaMA 3 70B) |
-| Embeddings | Google Generative AI or Hugging Face |
-| Vector Store | Pinecone |
-| RAG Chain | LangChain |
+| Embeddings | Hugging Face (all-mpnet-base-v2, 768d) |
+| Vector Store | Pinecone (serverless) |
+| Local Vector Store | Qdrant (Docker, for dev) |
+| RAG Framework | LangChain |
 | Backend API | FastAPI |
-| Deployment | Render |
+| Client UI | Streamlit |
+| Config | Pydantic Settings |
+| Containerisation | Docker / docker-compose |
+| CI/CD | GitHub Actions |
+| Deployment | Render / Fly.io |
 
 ## Mermaid diagram
 ```mermaid
@@ -85,34 +103,47 @@ flowchart LR
     subgraph Backend[FastAPI Backend]
         UP[/upload_pdfs/]
         AS[/ask/]
+        H[/health/]
     end
 
     Backend --> P
     Backend --> Q
     A --> Backend
 
-    subgraph Stack[Core Tech Stack]
-        LLM[Groq LLaMA 3 70B]
-        EMB[Google Generative AI / Hugging Face]
-        VS[Pinecone]
-        RAG[LangChain]
-        API[FastAPI]
-        DEP[Render]
+    subgraph Infra[Infrastructure]
+        PC[Pinecone]
+        QD[Qdrant]
+        PG[PostgreSQL]
     end
+
+    V -.-> PC
+    V -.-> QD
+    Backend -.-> PG
+
+    subgraph CI[CI/CD Pipeline]
+        GA[GitHub Actions]
+    end
+
+    GA --> Backend
 ```
 
 ## API endpoints
-### `/upload_pdfs`
+
+### `POST /upload_pdfs/`
 - Upload one or more PDF files.
 - Extract and chunk text.
 - Generate embeddings.
 - Store chunks in the vector database.
 
-### `/ask`
+### `POST /ask/`
 - Accept a natural-language question.
 - Embed the query.
 - Retrieve relevant chunks.
 - Generate a grounded answer using the RAG chain.
+
+### `GET /health`
+- Returns service status, version, and individual dependency checks.
+- Used by Docker HEALTHCHECK and deployment platforms.
 
 ## Design goals
 - Ground answers in uploaded source documents.

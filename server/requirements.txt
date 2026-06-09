@@ -34,3 +34,7 @@ loguru
 # File uploads
 aiofiles
 sentence_transformers
+
+# testing
+pytest
+httpx
