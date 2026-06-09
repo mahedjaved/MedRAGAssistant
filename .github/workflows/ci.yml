@@ -1,0 +1,65 @@
+name: CI/CD
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+defaults:
+  run:
+    shell: bash
+# --------------------------------------- #
+#  JOB 1: LINTING -- Flake8 for linting
+# --------------------------------------- #
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r server/requirements.txt -r client/requirements.txt
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 server/ client/ --count --select=E9,F63,F7,F82 --show-source --statistics
+# --------------------------------------- #
+#  JOB 2: TEST -- PyTest for testing
+# --------------------------------------- #
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r server/requirements.txt -r client/requirements.txt
+      - name: Run tests
+        run: |
+          pip install pytest httpx
+          pytest tests/ -v
+# --------------------------------------- #
+#  JOB 3: BUILD -- Docker build
+# --------------------------------------- #
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build server Docker image
+        run: docker build -f server/Dockerfile -t medrag-server .
+      - name: Build client Docker image
+        run: docker build -f client/Dockerfile -t medrag-client .
+# ------------------------------------------- #
+#  JOB 4: DEPLOY -- Deploy via Render/Fly.io
+# ------------------------------------------- #
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy placeholder
+      run: echo "Deployment to Render/Fly.io goes here once configured"
