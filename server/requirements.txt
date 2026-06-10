@@ -38,3 +38,8 @@ sentence_transformers
 # testing
 pytest
 httpx
+
+# ragas install dependancies
+ragas>=0.1.0
+datasets>=2.14.0
+pandas>=2.0.0
