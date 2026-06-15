@@ -1,10 +1,26 @@
+import time
 from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
 from modules.llm import get_llm_chain
+
 # from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
-from modules.load_vectorstore import load_vectorstore, embedding_model, PINECONE_INDEX_NAME
+from modules.load_vectorstore import (
+    load_vectorstore,
+    embedding_model,
+    PINECONE_INDEX_NAME,
+)
 from modules.langsmith_tracing import configure_langsmith_tracing, end_langsmith_run
+
+from modules.metrics import (
+    request_count,
+    token_usage,
+    chunk_count,
+    errors,
+    request_latency,
+    query_latency,
+    active_requests,
+)
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -18,8 +34,11 @@ from config import settings
 
 router = APIRouter()
 
+
 @router.post("/ask/")
 async def ask_question(question: str = Form(...)):
+    req_start_time = time.time()
+    active_requests.labels(method="POST", endpoint="/ask/").inc()
     try:
         logger.info(f"Received question: {question}")
         # index the vectorstore
@@ -64,15 +83,37 @@ async def ask_question(question: str = Form(...)):
 
         try:
             # setup langsmith tracing
-            tracer = configure_langsmith_tracing("med-rag-assistant", inputs={"question": question}, tags=["RAG", "medrag-assistant"])
+            tracer = configure_langsmith_tracing(
+                "med-rag-assistant",
+                inputs={"question": question},
+                tags=["RAG", "medrag-assistant"],
+            )
 
         except Exception as e:
+            errors.labels(method="POST", endpoint="/ask/", status_code=500).inc()
             logger.exception(f"Error setting up langsmith tracing: {e}")
 
+        query_start = time.time()
         result = llm_chain.invoke({"query": question})
+        query_latency.labels(method="POST", endpoint="/ask/").observe(
+            time.time() - query_start
+        )
 
-        # end langsmith run
-        end_langsmith_run(tracer, outputs={"result": result["result"]}, error=e if 'e' in locals() else None)
+        end_langsmith_run(
+            tracer,
+            outputs={"result": result["result"]},
+            error=e if "e" in locals() else None,
+        )
+
+        # update Prometheus metrics
+        request_count.labels(method="POST", endpoint="/ask/", status_code=200).inc()
+        token_usage.labels(method="POST", endpoint="/ask/").inc(
+            len(result["result"].split())
+        )
+        chunk_count.labels(method="POST", endpoint="/ask/").inc(len(docs))
+        request_latency.labels(method="POST", endpoint="/ask/").observe(
+            time.time() - req_start_time
+        )
 
         logger.info(f"Generated answer: {result['result'][0:100]}")
 
@@ -83,6 +124,10 @@ async def ask_question(question: str = Form(...)):
 
     except Exception as e:
         logger.exception(f"Error processing question: {e}")
+        errors.labels(method="POST", endpoint="/ask/", status_code=500).inc()
         return JSONResponse(
             content={"error": "Failed to process question"}, status_code=500
         )
+
+    finally:
+        active_requests.labels(method="POST", endpoint="/ask/").dec()
