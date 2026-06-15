@@ -38,6 +38,7 @@ sentence_transformers
 
 # testing
 pytest
+pytest-asyncio
 httpx
 
 # ragas install dependancies

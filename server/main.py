@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from routes.upload_pdfs import router as upload_router
 from routes.ask_question import router as ask_router
 from routes.health import router as health_router
+from routes.langsmith_health import router as langsmith_router
 
 from fastapi.middleware.cors import CORSMiddleware
 from middlewares.exceptionHandlers import catch_exception_from_middleware
@@ -28,3 +29,4 @@ app.middleware("http")(catch_exception_from_middleware)
 app.include_router(upload_router)
 app.include_router(ask_router)
 app.include_router(health_router)
+app.include_router(langsmith_router)

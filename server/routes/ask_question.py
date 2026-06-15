@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from modules.llm import get_llm_chain
 # from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
 from modules.load_vectorstore import load_vectorstore, embedding_model, PINECONE_INDEX_NAME
+from modules.langsmith_tracing import configure_langsmith_tracing, end_langsmith_run
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -59,7 +60,19 @@ async def ask_question(question: str = Form(...)):
 
         retriever = SimpleRetriever(docs)
         llm_chain = get_llm_chain(retriever)
+        tracer = None  # Initialize tracer variable
+
+        try:
+            # setup langsmith tracing
+            tracer = configure_langsmith_tracing("med-rag-assistant", inputs={"question": question}, tags=["RAG", "medrag-assistant"])
+
+        except Exception as e:
+            logger.exception(f"Error setting up langsmith tracing: {e}")
+
         result = llm_chain.invoke({"query": question})
+
+        # end langsmith run
+        end_langsmith_run(tracer, outputs={"result": result["result"]}, error=e if 'e' in locals() else None)
 
         logger.info(f"Generated answer: {result['result'][0:100]}")
 
