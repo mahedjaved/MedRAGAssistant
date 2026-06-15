@@ -2,8 +2,7 @@
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
-
-
+from typing import Optional
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -20,8 +19,10 @@ class Settings(BaseSettings):
 
     # ── Optional API keys (reserved for future phases) ─────────────
     google_api_key: str | None = None
+    langchain_api_key: Optional[str] = None
     langsmith_api_key: str | None = None
-    langsmith_tracing: bool = False
+    langsmith_tracing: bool = Field(default=True, description="Enable LangSmith tracing (default: True)")
+    langsmith_project: str | None = Field(default="medrag-assistant", description="LangSmith project name (default: medrag-assistant)")
 
     # ── Pinecone ───────────────────────────────────────────────────
     pinecone_env: str = "us-east-1"
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
         """Return GROQ_API_KEY, falling back to the legacy GROK_API_KEY env var."""
         return self.groq_api_key or self.grok_api_key
 
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
 
 # Module-level singleton — instantiated once on import.
 # Imports:  from config import settings

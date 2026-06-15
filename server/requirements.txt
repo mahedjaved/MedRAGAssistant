@@ -11,6 +11,7 @@ langchain
 langchain-community
 langchain-core
 langchain-groq
+langsmith>=0.1.0
 
 # Vectorstore
 pinecone
