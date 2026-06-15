@@ -21,7 +21,10 @@ from ragas.metrics import (
     context_recall,
 )
 # Add project root to Python path so we can import server modules
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "server"))
+
 from config import settings
 from modules.load_vectorstore import load_vectorstore
 from modules.llm import get_llm_chain
