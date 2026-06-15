@@ -41,7 +41,10 @@ pytest
 pytest-asyncio
 httpx
 
-# ragas install dependancies
+# observability
 ragas>=0.1.0
+prometheus-client
+
+# data & numerical processing
 datasets>=2.14.0
 pandas>=2.0.0
