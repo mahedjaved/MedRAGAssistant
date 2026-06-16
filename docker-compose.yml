@@ -62,3 +62,38 @@ services:
       - server
     networks:
       - medrag-network
+
+#  add Prometheus service (port 9090) and Grafana service (port 3000) with volumes pointing at the config files
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - medrag-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./deploy/grafana/dashboards/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./deploy/grafana/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./deploy/grafana/dashboards/medrag_dashboard.json:/etc/grafana/provisioning/dashboards/medrag_dashboard.json
+    networks:
+      - medrag-network
+
+  # For CPU and memory monitoring we use cAdvisor.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - medrag-network
+    

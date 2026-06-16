@@ -1,0 +1,6 @@
+# tells Grafana where Prometheus lives (http://prometheus:9090).
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
