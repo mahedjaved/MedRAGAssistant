@@ -2,6 +2,8 @@ import time
 from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
+from modules.rate_limiter import limiter
+
 from modules.llm import get_llm_chain
 from modules.db_logger import log_query, estimate_tokens_and_cost
 
@@ -37,6 +39,7 @@ router = APIRouter()
 
 
 @router.post("/ask/")
+@limiter.limit("10/minute")
 async def ask_question(question: str = Form(...)):
     req_start_time = time.time()
     active_requests.labels(method="POST", endpoint="/ask/").inc()
@@ -119,8 +122,10 @@ async def ask_question(question: str = Form(...)):
         logger.info(f"Generated answer: {result['result'][0:100]}")
 
         # estimate tokens and cost
-        estimated_input_tokens, estimated_output_tokens, estimated_cost = (estimate_tokens_and_cost(question, result["result"]))
-        
+        estimated_input_tokens, estimated_output_tokens, estimated_cost = (
+            estimate_tokens_and_cost(question, result["result"])
+        )
+
         # log the query, answer, sources and token costs to the database
         await log_query(
             query=question,

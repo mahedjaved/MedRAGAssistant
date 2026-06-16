@@ -50,3 +50,6 @@ pandas>=2.0.0
 
 # database & connectors
 asyncpg
+
+# rate limiting utility
+slowapi
