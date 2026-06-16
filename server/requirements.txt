@@ -3,12 +3,11 @@ fastapi
 uvicorn[standard]
 python-multipart
 
-langchain-huggingface
-
 
 # Langchain ecosystem
 langchain
 langchain-community
+langchain-huggingface
 langchain-core
 langchain-groq
 langsmith>=0.1.0
@@ -48,3 +47,7 @@ prometheus-client
 # data & numerical processing
 datasets>=2.14.0
 pandas>=2.0.0
+
+# database & connectors
+asyncpg
+asyncio

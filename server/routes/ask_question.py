@@ -3,6 +3,7 @@ from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
 from modules.llm import get_llm_chain
+from modules.db_logger import log_query
 
 # from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
 from modules.load_vectorstore import (
@@ -116,6 +117,13 @@ async def ask_question(question: str = Form(...)):
         )
 
         logger.info(f"Generated answer: {result['result'][0:100]}")
+        
+        # log the query, answer, and sources to the database
+        await log_query(
+            query=question,
+            answer=result["result"],
+            sources=[doc.metadata.get("source", "Unknown") for doc in docs],
+        )
 
         return {
             "response": result["result"],
