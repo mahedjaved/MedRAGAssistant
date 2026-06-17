@@ -5,11 +5,13 @@ Usage:
     python scripts/run_evaluation.py
 Requires:
     - PINECONE_API_KEY and GROQ_API_KEY in .env or environment
+    - OPENAI_API_KEY for RAGAS metric computation (v0.2+)
     - Medical PDFs already indexed in Pinecone (via /upload_pdfs/)
     - ragas, datasets, pandas installed
 """
 import json
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 from datasets import Dataset
@@ -26,17 +28,25 @@ sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "server"))
 
 from config import settings
-from modules.load_vectorstore import load_vectorstore
+from modules.load_vectorstore import embedding_model, PINECONE_INDEX_NAME
 from modules.llm import get_llm_chain
 from logger import logger
+
+# Import Pinecone for direct query (same pattern as ask_question.py)
+from pinecone import Pinecone
+from langchain_core.documents import Document
+from langchain_core.retrievers import BaseRetriever
+from pydantic import Field
+from typing import List, Optional
+
 
 def load_test_dataset(path: str) -> list[dict]:
     """
     Loads questions and answers pairs from the JSONL file in tests/test_data with each line a JSON object with:
         question(str): the user's query
-        answer(st):the expected gold answer
-        contexts(list[str]):relevant document snippets
-        ground_truth(str):authoritative answer
+        answer(str): the expected gold answer
+        contexts(list[str]): relevant document snippets
+        ground_truth(str): authoritative answer
     """
     questions = []
     with open(path, "r") as f:
@@ -47,6 +57,57 @@ def load_test_dataset(path: str) -> list[dict]:
     logger.info(f"Loaded {len(questions)} test questions from {path}")
     return questions
 
+
+def get_retriever_for_question(question: str) -> tuple:
+    """
+    Replicate the query pattern from ask_question.py.
+    Returns a tuple of (retriever, contexts) for the given question.
+    """
+    # Initialize Pinecone and get index
+    pc = Pinecone(api_key=settings.pinecone_api_key)
+    index = pc.Index(PINECONE_INDEX_NAME)
+    
+    # Embed the query
+    embedding_query = embedding_model.embed_query(question)
+    
+    # Query Pinecone directly
+    response = index.query(
+        vector=embedding_query,
+        top_k=3,
+        include_metadata=True,
+    )
+    
+    # Build documents from matches
+    docs = [
+        Document(
+            page_content=match["metadata"].get("text", ""),
+            metadata=match["metadata"],
+        )
+        for match in response["matches"]
+    ]
+    
+    # Simple retriever class (same as in ask_question.py)
+    class SimpleRetriever(BaseRetriever):
+        tags: Optional[List[str]] = Field(
+            default_factory=list, description="Optional tags for filtering"
+        )
+        metadata: Optional[dict] = Field(
+            default_factory=dict, description="Optional metadata for filtering"
+        )
+
+        def __init__(self, documents: List[Document]):
+            super().__init__()
+            self._docs = documents
+
+        def _get_relevant_documents(self, query: str) -> List[Document]:
+            return self._docs
+    
+    retriever = SimpleRetriever(docs)
+    contexts = [doc.page_content for doc in docs]
+    
+    return retriever, contexts
+
+
 def run_evaluation() -> dict:
     """
     Run RAGAS evaluation on the test dataset.
@@ -56,7 +117,6 @@ def run_evaluation() -> dict:
         - num_questions: int
         - config: dict of experiment configuration
     """
-    project_root = Path(__file__).resolve().parent.parent
     dataset_path = project_root / "tests" / "test_data" / "medical_qa.jsonl"
     eval_reports_dir = project_root / "eval_reports"
     eval_reports_dir.mkdir(exist_ok=True)
@@ -68,27 +128,20 @@ def run_evaluation() -> dict:
         logger.error("No test questions loaded -- exiting.")
         return {}
     
-    # -------- Initialise vector store and retriever ---------- #
-    logger.info(f"Initialising vector store ...")
-    vectorstore = load_vectorstore()
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
-
-    # -------- Initialise LLM chain --------------------------- #
-    logger.info(f"Initialising LLM chain ...")
-    chain = get_llm_chain(retriever)
-
-     # -------- Run queries and collect results --------------- #
+    # -------- Run queries and collect results --------------- #
     results = []
     for i, item in enumerate(test_questions):
         question = item["question"]
         logger.info(f"[{i + 1}/{len(test_questions)}] {question[:80]}…")
         try:
-            # retrieve 'R' the relevant documents
-            retrieved_docs = retriever.invoke(question)
-            contexts = [doc.page_content for doc in retrieved_docs]
-
-            # generate 'G the answer
-            result = chain.invoke({"query": question})
+            # Get retriever and contexts (replicates ask_question.py pattern)
+            retriever, contexts = get_retriever_for_question(question)
+            
+            # Initialize LLM chain
+            llm_chain = get_llm_chain(retriever)
+            
+            # Generate the answer
+            result = llm_chain.invoke({"query": question})
             answer = result["result"]
 
             results.append({
@@ -120,6 +173,12 @@ def run_evaluation() -> dict:
 
     # -------- Compute RAGAS metrics --------------- #
     logger.info("Computing RAGAS metrics ...")
+    
+    # Set OpenAI API key for RAGAS if available
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        os.environ["OPENAI_API_KEY"] = openai_key
+    
     metrics = [faithfulness, answer_relevancy, context_precision, context_recall]
     scores = evaluate(dataset, metrics=metrics)
 
@@ -132,7 +191,7 @@ def run_evaluation() -> dict:
             "embeddings": "all-mpnet-base-v2",
             "llm": "llama-3.3-70b-versatile",
             "vector_store": "pinecone",
-            "retriever_k": 4,
+            "retriever_k": 3,
         },
     }
 

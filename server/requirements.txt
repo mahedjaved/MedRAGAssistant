@@ -41,8 +41,9 @@ pytest-asyncio
 httpx
 
 # observability
-ragas>=0.1.0
+ragas>=0.2.0
 prometheus-client
+openai>=1.0.0
 
 # data & numerical processing
 datasets>=2.14.0
