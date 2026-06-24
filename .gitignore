@@ -26,6 +26,10 @@ pip-delete-this-directory.txt
 *.docx
 .claude
 .opencode
+.kilo
+.kiloagent
+.kilocommands
+.qwen
 
 # Virtual environments
 venv/
