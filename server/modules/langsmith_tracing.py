@@ -66,14 +66,14 @@ def end_langsmith_run(
             _langsmith_client.update_run(
                 run.id,
                 outputs=outputs,
-                error=str(error)
-                end_time=None  # Optionally, you can set the end time here
+                error=str(error),
+                end_time=None,  # Optionally, you can set the end time here
             )
         else:
             _langsmith_client.update_run(
                 run.id,
                 outputs=outputs,
-                end_time=None  # Optionally, you can set the end time here
+                end_time=None,  # Optionally, you can set the end time here
             )
             
 def log_metric(metric_name: str, value: float, run: Any = None):
