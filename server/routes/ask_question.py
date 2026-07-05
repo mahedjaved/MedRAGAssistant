@@ -1,6 +1,8 @@
 import time
-from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Form, HTTPException
+
+from schemas import QuestionRequest, QuestionResponse
 
 from modules.rate_limiter import limiter
 
@@ -37,20 +39,25 @@ from config import settings
 
 router = APIRouter()
 
-
-@router.post("/ask/")
+@router.post("/ask/", response_model=QuestionResponse)
 @limiter.limit("10/minute")
 async def ask_question(question: str = Form(...)):
+    try:
+        validated = QuestionRequest(question=question)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     req_start_time = time.time()
     active_requests.labels(method="POST", endpoint="/ask/").inc()
+
     try:
-        logger.info(f"Received question: {question}")
+        logger.info(f"Received question: {validated.question}")
         # index the vectorstore
         pc = Pinecone(
             api_key=settings.pinecone_api_key,
         )
         index = pc.Index(PINECONE_INDEX_NAME)
-        embedding_query = embedding_model.embed_query(question)
+        embedding_query = embedding_model.embed_query(validated.question)
         response = index.query(
             vector=embedding_query,
             top_k=3,  # top 3 relevant chunks
@@ -89,7 +96,7 @@ async def ask_question(question: str = Form(...)):
             # setup langsmith tracing
             tracer = configure_langsmith_tracing(
                 "med-rag-assistant",
-                inputs={"question": question},
+                inputs={"question": validated.question},
                 tags=["RAG", "medrag-assistant"],
             )
 
@@ -98,7 +105,7 @@ async def ask_question(question: str = Form(...)):
             logger.exception(f"Error setting up langsmith tracing: {e}")
 
         query_start = time.time()
-        result = llm_chain.invoke({"query": question})
+        result = llm_chain.invoke({"query": validated.question})
         query_latency.labels(method="POST", endpoint="/ask/").observe(
             time.time() - query_start
         )
@@ -123,12 +130,12 @@ async def ask_question(question: str = Form(...)):
 
         # estimate tokens and cost
         estimated_input_tokens, estimated_output_tokens, estimated_cost = (
-            estimate_tokens_and_cost(question, result["result"])
+            estimate_tokens_and_cost(validated.question, result["result"])
         )
 
         # log the query, answer, sources and token costs to the database
         await log_query(
-            query=question,
+            query=validated.question,
             answer=result["result"],
             sources=[doc.metadata.get("source", "Unknown") for doc in docs],
             estimated_input_tokens=estimated_input_tokens,
@@ -136,10 +143,20 @@ async def ask_question(question: str = Form(...)):
             estimated_cost=estimated_cost,
         )
 
-        return {
-            "response": result["result"],
-            "sources": [doc.metadata.get("source", "Unknown") for doc in docs],
-        }
+        sources = [
+            doc.metadata.get("source", "Unknown")
+            for doc in docs
+        ]
+
+        return QuestionResponse(
+            response=result["result"],
+            sources=sources,
+        )
+
+        # return QuestionResponse(
+        #     response=result["result"],
+        #     sources=[doc.metadata.get("source", "Unknown") for doc in docs],
+        # ).model_dump()
 
     except Exception as e:
         logger.exception(f"Error processing question: {e}")
