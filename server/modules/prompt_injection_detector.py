@@ -1,38 +1,67 @@
-from guardrails import Guard
-from guardrails.validators import detect_jailbreak
-from guardrails.exceptions import ValidationError
+import hashlib
+import logging
+from typing import Optional
+
 from fastapi import HTTPException
+
 from ..config import settings
 from ..logger import logger
-import hashlib
 
-# validator parameters accept a list where several validators e.g. detect jailbreak or detect toxicity can be used
-# guard = Guard(validators=[detect_jailbreak()])
 
-try:
-    injection_guard = Guard(
-        validators=[
-            detect_jailbreak(threshold=settings.prompt_injection_confidence_threshold)
-        ]
-    )
-except Exception as e:
-    logger.error(f"Failed to initialize prompt injection guard: {e}")
-    injection_guard = None
+# Patterns are checked case-insensitively against the user query.
+INJECTION_PATTERNS: list[str] = [
+    "ignore previous instructions",
+    "ignore all instructions",
+    "ignore the above",
+    "you are now DAN",
+    "pretend you are",
+    "act as if you are not bound by",
+    "override safety",
+    "jailbreak",
+    "without any restrictions",
+    "do not follow",
+    "disregard previous",
+    "new mode:",
+    "developer mode",
+    "unfiltered response",
+    "no limitations",
+]
+
+logger = logging.getLogger(__name__)
+
+# Singleton guard state.
+# This detector has no external dependencies and initializes ready.
+_injection_detector_enabled: bool = True
 
 
 def validate_query(query: str) -> None:
-    if injection_guard is None:
-        logger.warning(r"Prompt injection guard unavailable, skipping check")
+    """Validate a user query for prompt injection attempts.
+
+    Args:
+        query: The raw user query string.
+
+    Raises:
+        HTTPException: 422 if injection patterns are detected.
+    """
+    if not settings.prompt_injection_detection_enabled:
         return
 
-    try:
-        injection_guard.validate(query) 
-    except ValidationError as e:
+    query_lower = query.lower()
+    detected_pattern: Optional[str] = None
+
+    for pattern in INJECTION_PATTERNS:
+        if pattern.lower() in query_lower:
+            detected_pattern = pattern
+            break
+
+    if detected_pattern:
         query_hash = hashlib.sha256(query.encode()).hexdigest()[:16]
-        confidence = getattr(e, 'risk_score', getattr(e, 'error_message', 'N/A'))
-        logger.warning(f"Injection detected | hash={query_hash} confidence={confidence}")
-        raise HTTPException(422, "Your query was flagged as potentially unsafe. Please rephrase your query.")
-        return 
-    except Exception as e:
-        logger.error(f"Prompt injection validator error: {e}")
-        return
+        logger.warning(
+            "Prompt injection detected | hash=%s pattern=%s",
+            query_hash,
+            detected_pattern,
+        )
+        raise HTTPException(
+            status_code=422,
+            detail="Your query was flagged as potentially unsafe. Please rephrase your query.",
+        )

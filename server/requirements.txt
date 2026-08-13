@@ -1,5 +1,5 @@
 # Jailbreak pervention
-guardrails-ai>=0.5.0
+
 
 # Web framework
 fastapi
