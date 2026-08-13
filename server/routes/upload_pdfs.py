@@ -2,12 +2,12 @@ import re
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
-from modules.load_vectorstore import load_vectorstore
-from logger import logger
+from ..modules.load_vectorstore import load_vectorstore
+from ..logger import logger
 from pathlib import Path
-from schemas import UploadFileSchema, UploadResponse
+from ..schemas import UploadFileSchema, UploadResponse
 
-from constants.K import ALLOWED_FILE_EXTENSIONS, PDF_MAGIC_BYTES, MAX_UPLOAD_FILES, MAX_FILE_SIZE_BYTES
+from ..constants.K import ALLOWED_FILE_EXTENSIONS, PDF_MAGIC_BYTES, MAX_UPLOAD_FILES, MAX_FILE_SIZE_BYTES
 
 # Initialise our API router
 router = APIRouter()

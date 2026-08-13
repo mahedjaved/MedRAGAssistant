@@ -3,7 +3,7 @@
 import os
 from typing import Any, Dict, List, Optional
 from langsmith import Client
-from langsmith.run_configs import RunConfig
+
 
 # Initialise Langsmith client
 langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
@@ -38,8 +38,8 @@ def configure_langsmith_tracing(
     if not _langsmith_enabled or not _langsmith_client:
         return None
     
-    run_config = RunConfig(
-        run_name=run_name,
+    run_config = dict(
+        name=run_name,
         inputs=inputs,
         metadata=metadata or {},
         tags=tags or [],

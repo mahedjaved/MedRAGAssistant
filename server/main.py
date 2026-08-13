@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 
-from routes.upload_pdfs import router as upload_router
-from routes.ask_question import router as ask_router
-from routes.health import router as health_router
-from routes.langsmith_health import router as langsmith_router
-from routes.metrics import router as metrics_router
+from .routes.upload_pdfs import router as upload_router
+from .routes.ask_question import router as ask_router
+from .routes.health import router as health_router
+from .routes.langsmith_health import router as langsmith_router
+from .routes.metrics import router as metrics_router
 
-from modules.rate_limiter import limiter
+from .modules.rate_limiter import limiter
 
 from fastapi.middleware.cors import CORSMiddleware
-from middlewares.exceptionHandlers import catch_exception_from_middleware
-from modules.db_logger import init_db
+from .middlewares.exceptionHandlers import catch_exception_from_middleware
+from .modules.db_logger import init_db
 
 app = FastAPI(
     title="Medical Assistant API",

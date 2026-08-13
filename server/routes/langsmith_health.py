@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from modules.langsmith_tracing import _langsmith_enabled, _langsmith_client
+from ..modules.langsmith_tracing import _langsmith_enabled, _langsmith_client
 
 router = APIRouter()
 

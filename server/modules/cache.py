@@ -1,6 +1,6 @@
 import time
 import nump as np
-from config import settings
+from ..config import settings
 
 class SemanticCache:
     def __init__(self):

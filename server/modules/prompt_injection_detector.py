@@ -2,8 +2,8 @@ from guardrails import Guard
 from guardrails.validators import detect_jailbreak
 from guardrails.exceptions import ValidationError
 from fastapi import HTTPException
-from config import settings
-from logger import logger
+from ..config import settings
+from ..logger import logger
 import hashlib
 
 # validator parameters accept a list where several validators e.g. detect jailbreak or detect toxicity can be used

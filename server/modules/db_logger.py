@@ -1,5 +1,5 @@
 import asyncpg
-from config import settings
+from ..config import settings
 
 connection_pool = None
 

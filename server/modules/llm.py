@@ -1,6 +1,6 @@
-from config import settings
+from ..config import settings
 from langchain_groq import ChatGroq
-from langchain.chains import RetrievalQA
+from langchain_classic.chains import RetrievalQA
 
 
 

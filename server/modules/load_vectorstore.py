@@ -5,8 +5,8 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from logger import logger
-from config import settings
+from ..logger import logger
+from ..config import settings
 
 
 PINECONE_API_KEY = settings.pinecone_api_key

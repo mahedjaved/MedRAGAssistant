@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from logger import logger
+from ..logger import logger
 
 
 async def catch_exception_from_middleware(request, call_next):

@@ -55,10 +55,6 @@ class Settings(BaseSettings):
         """Return GROQ_API_KEY, falling back to the legacy GROK_API_KEY env var."""
         return self.groq_api_key or self.grok_api_key
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
-
 # Module-level singleton — instantiated once on import.
 # Imports:  from config import settings
 settings = Settings()

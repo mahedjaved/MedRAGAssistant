@@ -36,3 +36,9 @@ query_latency = Histogram(
 active_requests = Gauge(
     "active_http_requests", "Number of active HTTP requests", ["method", "endpoint"]
 )
+
+prompt_injection_attempts_total = Counter(
+    "prompt_injection_attempts_total",
+    "Total number of detected prompt injection attempts",
+    ["endpoint", "result"]  # result: "blocked" or "allowed"
+)

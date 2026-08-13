@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from schemas.constants.K import (
+from .constants.K import (
     MEDICAL_DISCLAIMER,
     MAX_QUESTION_LENGTH,
     MAX_ANSWER_LENGTH,
@@ -44,6 +44,7 @@ class QuestionResponse(BaseModel):
     response: str = Field(..., min_length=1, max_length=MAX_ANSWER_LENGTH)
     sources: list[str] = Field(default_factory=list, max_length=MAX_SOURCES)
     disclaimer: str = MEDICAL_DISCLAIMER
+    injection_detected: bool = False
 
     # reject unknown fields added by the user
     model_config = ConfigDict(extra="forbid")

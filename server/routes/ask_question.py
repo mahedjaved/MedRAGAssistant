@@ -1,23 +1,23 @@
 import time
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, HTTPException, Request
 
-from schemas import QuestionRequest, QuestionResponse
+from ..schemas import QuestionRequest, QuestionResponse
 
-from modules.rate_limiter import limiter
+from ..modules.rate_limiter import limiter
 
-from modules.llm import get_llm_chain
-from modules.db_logger import log_query, estimate_tokens_and_cost
+from ..modules.llm import get_llm_chain
+from ..modules.db_logger import log_query, estimate_tokens_and_cost
 
 # from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
-from modules.load_vectorstore import (
+from ..modules.load_vectorstore import (
     load_vectorstore,
     embedding_model,
     PINECONE_INDEX_NAME,
 )
-from modules.langsmith_tracing import configure_langsmith_tracing, end_langsmith_run
+from ..modules.langsmith_tracing import configure_langsmith_tracing, end_langsmith_run
 
-from modules.metrics import (
+from ..modules.metrics import (
     request_count,
     token_usage,
     chunk_count,
@@ -34,14 +34,14 @@ from pinecone import Pinecone
 from pydantic import Field
 
 from typing import List, Optional
-from logger import logger
-from config import settings
+from ..logger import logger
+from ..config import settings
 
 router = APIRouter()
 
 @router.post("/ask/", response_model=QuestionResponse)
 @limiter.limit("10/minute")
-async def ask_question(question: str = Form(...)):
+async def ask_question(request: Request, question: str = Form(...)):
     try:
         validated = QuestionRequest(question=question)
     except Exception as e:

@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from modules.load_vectorstore import index
-from config import settings
-from logger import logger
+from ..modules.load_vectorstore import index
+from ..config import settings
+from ..logger import logger
 
 router = APIRouter()
 
