@@ -4,10 +4,11 @@ from fastapi import APIRouter, Form, HTTPException
 
 from schemas import QuestionRequest, QuestionResponse
 
+from modules import cache
 from modules.rate_limiter import limiter
-
 from modules.llm import get_llm_chain
 from modules.db_logger import log_query, estimate_tokens_and_cost
+
 
 # from modules.load_vectorstore import load_vectorstore, PINECONE_INDEX_NAME
 from modules.load_vectorstore import (
@@ -36,6 +37,7 @@ from pydantic import Field
 from typing import List, Optional
 from logger import logger
 from config import settings
+from modules.prompt_injection_detector import
 
 router = APIRouter()
 
@@ -57,7 +59,7 @@ async def ask_question(question: str = Form(...)):
             api_key=settings.pinecone_api_key,
         )
         index = pc.Index(PINECONE_INDEX_NAME)
-        embedding_query = embedding_model.embed_query(validated.question)
+        embedding_quer12y = embedding_model.embed_query(validated.question)
         response = index.query(
             vector=embedding_query,
             top_k=3,  # top 3 relevant chunks
@@ -71,6 +73,7 @@ async def ask_question(question: str = Form(...)):
             )
             for match in response["matches"]
         ]
+
 
         # Simple retriever class
         class SimpleRetriever(BaseRetriever):

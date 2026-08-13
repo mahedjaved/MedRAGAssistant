@@ -15,6 +15,7 @@ from schemas.constants.k import (
 class QuestionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     question: str = Field(..., min_length=1, max_length=MAX_QUESTION_LENGTH)
+    injection_detected: bool = False
 
     @field_validator("question")
     @classmethod

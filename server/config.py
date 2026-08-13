@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     pinecone_api_key: str
     groq_api_key: str
 
+    # ── Prompt Injection options ──────────────────────────────────────────
+    prompt_injection_detection_enabled: bool = True
+    prompt_injection_confidence_threshold: float = 0.7
+    prompt_injection_skip_paths: list[str] = []
+
     # ── Legacy fallback (for backward compat with existing .env files) ──
     grok_api_key: str = ""
 
@@ -38,6 +43,11 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
     uploaded_docs_dir: str = "./uploaded_docs"
+
+
+     # ── Cache ─────────────────────────────────────────────────────
+    cache_ttl_seconds: int = 3600
+    cache_similarity_threshold: float = 0.95
 
     # ── GROQ_API_KEY fallback ──────────────────────────────────────
     @property
