@@ -82,20 +82,6 @@ class QuestionResponse(BaseModel):
         return cleaned_sources
 
 
-class UploadResponse(BaseModel):
-    status: str
-    uploaded_count: int
-    rejected_count: int = 0
-    files = list[UploadFileSchema]
-
-    @field_validator("status")
-    @classmethod
-    def validate_status(cls, v):
-        if v not in {"success", "partial_success", "failed"}:
-            raise ValueError("Invalid upload status")
-        return v
-
-
 class UploadFileSchema(BaseModel):
     filename: str
     content_type: str
@@ -128,4 +114,18 @@ class UploadFileSchema(BaseModel):
         if Path(v).suffix.lower() not in ALLOWED_FILE_EXTENSIONS:
             raise ValueError("Only PDF files are allowed.")
 
+        return v
+
+
+class UploadResponse(BaseModel):
+    status: str
+    uploaded_count: int
+    rejected_count: int = 0
+    files: list[UploadFileSchema]
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v):
+        if v not in {"success", "partial_success", "failed"}:
+            raise ValueError("Invalid upload status")
         return v
