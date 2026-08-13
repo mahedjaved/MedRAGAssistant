@@ -94,6 +94,7 @@ async def ask_question(question: str = Form(...)):
         retriever = SimpleRetriever(docs)
         llm_chain = get_llm_chain(retriever)
         tracer = None  # Initialize tracer variable
+        request_error = None
 
         try:
             # setup langsmith tracing
@@ -104,20 +105,28 @@ async def ask_question(question: str = Form(...)):
             )
 
         except Exception as e:
+            request_error = e
             errors.labels(method="POST", endpoint="/ask/", status_code=500).inc()
             logger.exception(f"Error setting up langsmith tracing: {e}")
 
         query_start = time.time()
-        result = llm_chain.invoke({"query": validated.question})
-        query_latency.labels(method="POST", endpoint="/ask/").observe(
-            time.time() - query_start
-        )
 
-        end_langsmith_run(
-            tracer,
-            outputs={"result": result["result"]},
-            error=e if "e" in locals() else None,
-        )
+        try:
+            result = llm_chain.invoke({"query": validated.question})
+            query_latency.labels(method="POST", endpoint="/ask/").observe(
+                time.time() - query_start
+            )
+        except Exception as e:
+            request_error = e
+            raise
+
+        finally:
+            if tracer is not None:
+                end_langsmith_run(
+                    tracer,
+                    outputs={"result": result["result"]},
+                    error=e if "e" in locals() else None,
+                )
 
         # update Prometheus metrics
         request_count.labels(method="POST", endpoint="/ask/", status_code=200).inc()
