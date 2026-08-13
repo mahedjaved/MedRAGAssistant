@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import time
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Form, HTTPException
@@ -38,7 +37,7 @@ from pydantic import Field
 from typing import List, Optional
 from logger import logger
 from config import settings
-from modules.prompt_injection_detector import
+
 
 router = APIRouter()
 
@@ -166,7 +165,6 @@ async def ask_question(question: str = Form(...)):
 
     finally:
         active_requests.labels(method="POST", endpoint="/ask/").dec()
-=======
 import time
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Form, HTTPException
@@ -336,4 +334,3 @@ async def ask_question(question: str = Form(...)):
 
     finally:
         active_requests.labels(method="POST", endpoint="/ask/").dec()
->>>>>>> 27b385f7258319576a344a3cb3cd83da623bd9ac

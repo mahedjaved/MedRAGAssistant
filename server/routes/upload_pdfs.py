@@ -38,7 +38,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
 
             if total_size > MAX_UPLOAD_FILES * MAX_FILE_SIZE_BYTES:
                 raise ValueError(
-                    f"Total upload size exceeds {(MAX_UPLOAD_FILES * MAX)}"
+                    f"Total upload size exceeds {(MAX_UPLOAD_FILES * MAX_FILE_SIZE_BYTES )}"
                 )
 
             # await file.seek(0)
