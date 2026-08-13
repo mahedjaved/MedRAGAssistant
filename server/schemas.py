@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import re
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -255,4 +254,3 @@ class UploadFileSchema(BaseModel):
             raise ValueError("Only PDF files are allowed.")
 
         return v
->>>>>>> 27b385f7258319576a344a3cb3cd83da623bd9ac
