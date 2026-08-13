@@ -1,0 +1,12 @@
+# response validation constants
+MEDICAL_DISCLAIMER = "This is not medical advice. Consult a healthcare professional."
+MAX_QUESTION_LENGTH = 1000
+MAX_ANSWER_LENGTH = 4000
+MAX_SOURCE_LENGTH = 500
+MAX_UPLOAD_FILES = 5
+ALLOWED_FILE_EXTENSIONS = {".pdf"}
+ALLOWED_MIME_TYPES = {"application/pdf"}
+PDF_MAGIC_BYTES = b"%PDF-"
+MAX_SOURCES = 10
+MAX_UPLOAD_FILES = 5
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
