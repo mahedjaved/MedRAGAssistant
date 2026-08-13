@@ -59,7 +59,7 @@ async def ask_question(question: str = Form(...)):
             api_key=settings.pinecone_api_key,
         )
         index = pc.Index(PINECONE_INDEX_NAME)
-        embedding_quer12y = embedding_model.embed_query(validated.question)
+        embedding_query = embedding_model.embed_query(validated.question)
         response = index.query(
             vector=embedding_query,
             top_k=3,  # top 3 relevant chunks
