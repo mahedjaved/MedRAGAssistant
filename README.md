@@ -1,4 +1,4 @@
-# MedRAGAssistant
+# MedRAGAssistant (WIP)
 
 Medical RAG (Retrieval-Augmented Generation) chatbot — FastAPI backend + Streamlit frontend, with LangChain, Pinecone, and Groq/LLaMA.
 
@@ -11,3 +11,7 @@ Medical RAG (Retrieval-Augmented Generation) chatbot — FastAPI backend + Strea
 -- This section includes all new workarounds I have discovered while implementing the project.
 
 In our project we explicitly handle environment variables using pydantic_settings' `settings.X` as opposed to `os.getenv()` for setting API keys and environment variables in general. This gives us the added benefit that:
+
+## Contact
+
+For feedbacks, please contact mahed95@gmail.com
