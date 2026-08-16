@@ -31,4 +31,3 @@ For any reader interested in learning more on the techniques employed in the pro
 ## Contact
 
 For feedback please contact mahed95@gmail.com
-
