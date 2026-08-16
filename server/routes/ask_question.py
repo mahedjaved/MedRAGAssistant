@@ -27,6 +27,9 @@ from ..modules.metrics import (
     active_requests,
 )
 
+# redaction modules
+from ..modules.pii_detector import detect_and_redact
+
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
@@ -50,6 +53,15 @@ async def ask_question(request: Request, question: str = Form(...)):
     if settings.prompt_injection_detection_enabled:
         from modules.prompt_injection_detector import validate_query
         validate_query(validated.question)
+
+    # redact PII if enabled
+    if settings.pii_detection_enabled:
+        original_question = validated.question
+        redacted_question = await detect_and_redact(validated.question)
+        pii_redacted = original_question != redacted_question
+        validated.question = redacted_question
+    else:
+        pii_redacted = False
 
     req_start_time = time.time()
     active_requests.labels(method="POST", endpoint="/ask/").inc()
@@ -164,6 +176,7 @@ async def ask_question(request: Request, question: str = Form(...)):
         return QuestionResponse(
             response=result["result"],
             sources=sources,
+            pii_redacted=pii_redacted,
         )
 
         # return QuestionResponse(

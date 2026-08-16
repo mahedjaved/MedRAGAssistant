@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     prompt_injection_confidence_threshold: float = 0.7
     prompt_injection_skip_paths: list[str] = []
 
+    # ── PII Redaction Options ──────────────────────────────────────────
+    pii_detection_enabled: bool = True
+    pii_strict_mode: bool = False
+    pii_redaction_enabled: bool = True
+    pii_log_redactions: bool = True
+    pii_redaction_mode: str = "replace"
+
+
     # ── Legacy fallback (for backward compat with existing .env files) ──
     grok_api_key: str = ""
 
