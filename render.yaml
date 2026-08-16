@@ -37,4 +37,3 @@ databases:
   - name: medrag-pg
     plan: free
     databaseName: medrag
-    user: postgres
