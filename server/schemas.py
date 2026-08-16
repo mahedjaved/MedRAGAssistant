@@ -45,6 +45,7 @@ class QuestionResponse(BaseModel):
     sources: list[str] = Field(default_factory=list, max_length=MAX_SOURCES)
     disclaimer: str = MEDICAL_DISCLAIMER
     injection_detected: bool = False
+    pii_redacted: bool = False
 
     # reject unknown fields added by the user
     model_config = ConfigDict(extra="forbid")

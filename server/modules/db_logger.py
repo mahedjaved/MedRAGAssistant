@@ -10,6 +10,7 @@ async def init_db():
         dsn=settings.database_url,
     )
     await create_query_table()
+    await create_pii_redaction_table()
 
 # create a query table with columns: id, query, answer, sources, created_at
 async def create_query_table():
@@ -29,6 +30,21 @@ async def create_query_table():
             """
         )
 
+async def create_pii_redaction_table():
+    async with connection_pool.transaction():
+        await connection_pool.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pii_redaction_log (
+                id SERIAL PRIMARY KEY,
+                query_hash TEXT NOT NULL,
+                entity_type TEXT NOT NULL,
+                original_snippet TEXT,
+                redacted_snippet TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
 async def log_query(query: str, answer: str, sources: list, estimated_input_tokens: int = None, estimated_output_tokens: int = None, estimated_cost: float = None):
     async with connection_pool.transaction():
         await connection_pool.execute(
@@ -43,6 +59,19 @@ async def log_query(query: str, answer: str, sources: list, estimated_input_toke
             estimated_output_tokens,
             estimated_cost,
         )   
+
+async def log_pii_redaction(query_hash: str, entity_type: str, original_snippet: str, redacted_snippet: str):
+    async with connection_pool.transaction():
+        await connection_pool.execute(
+            """
+            INSERT INTO pii_redaction_log (query_hash, entity_type, original_snippet, redacted_snippet)
+            VALUES ($1, $2, $3, $4)
+            """,
+            query_hash,
+            entity_type,
+            original_snippet,
+            redacted_snippet,
+        )
 
 # a simple helper function that estimates tokens and cost
 def estimate_tokens_and_cost(query: str, answer: str) -> tuple:
