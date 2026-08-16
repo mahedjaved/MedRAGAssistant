@@ -1,0 +1,41 @@
+services:
+  - type: pgsql
+    name: medrag-pg
+    plan: free
+    databaseName: medrag
+    user: postgres
+
+  - type: web
+    name: medrag-web
+    plan: free
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    port: 8000
+    healthCheckPath: /health
+    envVars:
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: medrag-pg
+          property: connectionString
+      - key: PINECONE_ENV
+        value: us-east-1
+      - key: PINECONE_INDEX_NAME
+        value: medical-index
+      - key: RELAXATION_TIME
+        value: "1"
+      - key: UPLOADED_DOCS_DIR
+        value: ./uploaded_docs
+      - key: PII_DETECTION_ENABLED
+        value: "true"
+      - key: PII_STRICT_MODE
+        value: "false"
+      - key: PII_REDACTION_MODE
+        value: replace
+      - key: PII_LOG_REDACTIONS
+        value: "true"
+      - key: PROMPT_INJECTION_DETECTION_ENABLED
+        value: "true"

@@ -4,7 +4,7 @@ Medical RAG (Retrieval-Augmented Generation) chatbot — FastAPI backend + Strea
 
 ---
 
-*N.B* This project is still work in progress. Claude code is used as an assistant vibe coder for this project, all evaluations on assisted dev based developments will be reported later as part of the work carried out in this project. For now, author is using pure programming judgement protocol to assess Claude's contribution
+_N.B_ This project is still work in progress. Claude code is used as an assistant vibe coder for this project, all evaluations on assisted dev based developments will be reported later as part of the work carried out in this project. For now, author is using pure programming judgement protocol to assess Claude's contribution
 
 ## Improvements and Unique Contributions
 
@@ -14,6 +14,15 @@ In our project we explicitly handle environment variables using pydantic_setting
 
 - **Using presidio two-layer pattern recognition & scoring approach** allows us to use primary (strict, high confidence pattern) alongside secondary (looser, low confidence fallback) ways of pattern matching. For now we a.r.b number **0.85** for high confidence and **0.65** for low confidence
 
+## Design Choice
+
+- **Using Github Actions for CI/CD** so that we can ensure safe, reliable, robust deployment of production ready code
+![alt text](image.png)
+- **Using Unit test manually** so that they act as quality gate for PR review : in future there is intention to encorporate them into CI/CD
+![alt text](image-1.png)
+- **Using Presidio for PII redaction** becayse `presidio-analyzer`, `presidio-anaonymizer` and `spacy` can 2-5 minutes for build time. Render's free tier has 15-minute build timeout
+- **Regex custom guardrails** used to ensure production hardening
+
 ## To Explore In Future
 
 - **Upgrade prompt injection detection** from the current lightweight regex heuristic to `guardrails-ai-detect-jailbreak` for more robust jailbreak/role-override detection.
@@ -21,6 +30,16 @@ In our project we explicitly handle environment variables using pydantic_setting
 - **Implement retry logic** with exponential backoff for Groq and Pinecone calls via `tenacity`.
 - **Add semantic caching** (embedding-similarity + TTL) to reduce redundant LLM calls and cost.
 - **Async processing for large PDF uploads** using FastAPI `BackgroundTasks` or Celery/RQ.
+- **Reducing memory size of spacy model** to allow hosting on Render free tier mode
+- **Semantic Caching** to fasten retrieval times
+
+
+
+
+Prompt injection detection (guardrails-ai) - DONE (switched to heuristic)
+PII detection & redaction - DONE (just completed)
+Retry with exponential backoff
+Async processing for large uploads
 
 ## Resources
 

@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc build-essen
 # copy requirements and install packages into user space
 COPY server/requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
+# download spaCy model for Presidio PII detection
+RUN python -m spacy download en_core_web_md
 # ---------------------------------------------------------------------------------------------------- #
 # STAGE. 2  -  RUN TIME STAGE
 # ---------------------------------------------------------------------------------------------------- #

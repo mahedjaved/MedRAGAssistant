@@ -24,7 +24,7 @@ from ..modules.db_logger import log_pii_redaction
 import spacy
 
 # load the spACy model for English language
-nlp = spacy.load("en_core_web_lg")
+nlp = spacy.load("en_core_web_md")
 
 # set registry
 registry = RecognizerRegistry(
