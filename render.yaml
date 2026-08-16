@@ -1,10 +1,4 @@
 services:
-  - type: pgsql
-    name: medrag-pg
-    plan: free
-    databaseName: medrag
-    user: postgres
-
   - type: web
     name: medrag-web
     plan: free
@@ -39,3 +33,9 @@ services:
         value: "true"
       - key: PROMPT_INJECTION_DETECTION_ENABLED
         value: "true"
+
+databases:
+  - name: medrag-pg
+    plan: free
+    databaseName: medrag
+    user: postgres
