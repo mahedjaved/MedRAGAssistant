@@ -4,7 +4,6 @@ services:
     plan: free
     runtime: docker
     dockerfilePath: ./server/Dockerfile
-    port: 8000
     healthCheckPath: /health
     envVars:
       - key: PINECONE_API_KEY
