@@ -50,3 +50,10 @@ For any reader interested in learning more on the techniques employed in the pro
 ## Contact
 
 For feedback please contact mahed95@gmail.com
+
+
+## Current Facing Issue
+
+**Deployment success** is pending, out of memory issues are being observed by the host as shown
+
+![alt text](image-2.png)
